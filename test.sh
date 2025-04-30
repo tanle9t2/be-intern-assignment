@@ -111,7 +111,7 @@ EOF
 
 test_update_activity() {
     print_header "Testing PUT update activity"
-    read -p "Enter new activity id: " activityId
+    read -p "Enter activity id: " activityId
     read -p "Enter new activity type: " activityType
     read -p "Enter new target ID: " targetId
     read -p "Enter new created at: " createdAt

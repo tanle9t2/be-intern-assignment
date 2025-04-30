@@ -29,7 +29,9 @@ export class PostService {
 
     const [posts, totalPosts] = await this.postRepository.findAndCount({
       where: {
-        hashtags: { tagName: ILike(hashtagName) },
+        hashtags: {
+          tagName: ILike(`%${hashtagName.replace(/^#/, '')}%`),
+        },
       },
       relations: ['user'],
       order: {

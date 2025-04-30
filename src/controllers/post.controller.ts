@@ -29,6 +29,7 @@ export class PostController {
   async getPostByTag(req: Request, res: Response) {
     try {
       const tag = req.params.tag;
+      console.log(tag);
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const { data, pagination } = await this.postService.findPostsByHashtag(tag, page, limit);
