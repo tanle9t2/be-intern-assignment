@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { PostService } from '../services/post.service'; // adjust the path if needed
-import { standardResponse } from '../helpers/response.helper';
+import { standardResponse } from '../helpers/response.helper'; // Ensure standardResponse helper is imported
 
 export class PostController {
   private postService = new PostService();
 
+  // Get Feed
   async getFeed(req: Request, res: Response) {
     try {
       const userId = req.user.id; // ✅ we can now access user.id safely
@@ -13,26 +14,30 @@ export class PostController {
       const limit = parseInt(req.query.limit as string) || 10;
 
       const { data, pagination } = await this.postService.findFeed(userId, page, limit);
+
       const response = standardResponse(
         'success',
         data,
-        'Followers fetched successfully',
+        'Feed fetched successfully',
         pagination // Include pagination metadata
       );
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error fetching followers' });
+      const response = standardResponse('error', null, error.message || 'Error fetching feed');
+      res.status(500).json(response);
     }
   }
 
+  // Get posts by tag
   async getPostByTag(req: Request, res: Response) {
     try {
       const tag = req.params.tag;
-      console.log(tag);
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
+
       const { data, pagination } = await this.postService.findPostsByHashtag(tag, page, limit);
+
       const response = standardResponse(
         'success',
         data,
@@ -42,7 +47,12 @@ export class PostController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error fetching post' });
+      const response = standardResponse(
+        'error',
+        null,
+        error.message || 'Error fetching posts by tag'
+      );
+      res.status(500).json(response);
     }
   }
 
@@ -51,9 +61,13 @@ export class PostController {
     try {
       const { userId, content } = req.body;
       const newPost = await this.postService.createPost(userId, content);
-      res.status(201).json(newPost);
+
+      const response = standardResponse('success', newPost, 'Post created successfully');
+
+      res.status(201).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error creating post' });
+      const response = standardResponse('error', null, error.message || 'Error creating post');
+      res.status(500).json(response);
     }
   }
 
@@ -61,9 +75,13 @@ export class PostController {
   async getAllPosts(req: Request, res: Response) {
     try {
       const posts = await this.postService.findAllPosts();
-      res.json(posts);
+
+      const response = standardResponse('success', posts, 'Posts fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error fetching posts' });
+      const response = standardResponse('error', null, error.message || 'Error fetching posts');
+      res.status(500).json(response);
     }
   }
 
@@ -72,12 +90,18 @@ export class PostController {
     try {
       const postId = parseInt(req.params.id);
       const post = await this.postService.findPostById(postId);
+
       if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
+        const response = standardResponse('error', null, 'Post not found');
+        return res.status(404).json(response);
       }
-      res.json(post);
+
+      const response = standardResponse('success', post, 'Post fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error fetching post' });
+      const response = standardResponse('error', null, error.message || 'Error fetching post');
+      res.status(500).json(response);
     }
   }
 
@@ -87,12 +111,18 @@ export class PostController {
       const postId = parseInt(req.params.id);
       const updates = req.body;
       const updatedPost = await this.postService.updatePost(postId, updates);
+
       if (!updatedPost) {
-        return res.status(404).json({ message: 'Post not found' });
+        const response = standardResponse('error', null, 'Post not found');
+        return res.status(404).json(response);
       }
-      res.json(updatedPost);
+
+      const response = standardResponse('success', updatedPost, 'Post updated successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error updating post' });
+      const response = standardResponse('error', null, error.message || 'Error updating post');
+      res.status(500).json(response);
     }
   }
 
@@ -101,9 +131,13 @@ export class PostController {
     try {
       const postId = parseInt(req.params.id);
       await this.postService.deletePost(postId);
-      res.status(204).send();
+
+      const response = standardResponse('success', null, 'Post deleted successfully');
+
+      res.status(204).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: error.message || 'Error deleting post' });
+      const response = standardResponse('error', null, error.message || 'Error deleting post');
+      res.status(500).json(response);
     }
   }
 }

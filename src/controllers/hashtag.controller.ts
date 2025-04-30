@@ -1,64 +1,96 @@
 import { Request, Response } from 'express';
 import { HashtagService } from '../services/hashtag.service'; // Adjust the path if needed
+import { standardResponse } from '../helpers/response.helper'; // Ensure standardResponse helper is imported
 
 export class HashtagController {
   private hashtagService = new HashtagService();
 
+  // Get all hashtags
   async getAllHashtags(req: Request, res: Response) {
     try {
-      console.log('pl');
       const hashtags = await this.hashtagService.findAllHashtags();
-      console.log(hashtags);
-      res.json(hashtags);
+
+      const response = standardResponse('success', hashtags, 'Hashtags fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching hashtags', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching hashtags');
+
+      res.status(500).json(response);
     }
   }
 
+  // Get hashtag by ID
   async getHashtagById(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id);
       const hashtag = await this.hashtagService.findHashtagById(id);
+
       if (!hashtag) {
-        return res.status(404).json({ message: 'Hashtag not found' });
+        const response = standardResponse('error', null, 'Hashtag not found');
+        return res.status(404).json(response);
       }
-      res.json(hashtag);
+
+      const response = standardResponse('success', hashtag, 'Hashtag fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching hashtag', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching hashtag');
+      res.status(500).json(response);
     }
   }
 
+  // Create a new hashtag
   async createHashtag(req: Request, res: Response) {
     try {
       const { tagName } = req.body;
       const newHashtag = await this.hashtagService.createHashtag(tagName);
-      res.status(201).json(newHashtag);
+
+      const response = standardResponse('success', newHashtag, 'Hashtag created successfully');
+
+      res.status(201).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error creating hashtag', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error creating hashtag');
+
+      res.status(500).json(response);
     }
   }
 
+  // Update a hashtag
   async updateHashtag(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
       const updatedHashtag = await this.hashtagService.updateHashtag(id, updates);
+
       if (!updatedHashtag) {
-        return res.status(404).json({ message: 'Hashtag not found' });
+        const response = standardResponse('error', null, 'Hashtag not found');
+        return res.status(404).json(response);
       }
-      res.json(updatedHashtag);
+
+      const response = standardResponse('success', updatedHashtag, 'Hashtag updated successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error updating hashtag', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error updating hashtag');
+
+      res.status(500).json(response);
     }
   }
 
+  // Delete a hashtag
   async deleteHashtag(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id);
       await this.hashtagService.deleteHashtag(id);
-      res.status(204).send();
+
+      const response = standardResponse('success', null, 'Hashtag deleted successfully');
+
+      res.status(204).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error deleting hashtag', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error deleting hashtag');
+
+      res.status(500).json(response);
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { UserFollowService } from '../services/userFollow.service'; // adjust path if needed
+import { UserFollowService } from '../services/userFollow.service'; // Adjust path if needed
+import { standardResponse } from '../helpers/response.helper'; // Ensure standardResponse helper is imported
 
 export class UserFollow {
   private followService = new UserFollowService();
@@ -9,9 +10,14 @@ export class UserFollow {
     try {
       const { followerId, followedId } = req.body;
       const newFollow = await this.followService.createFollow(followerId, followedId);
-      res.status(201).json(newFollow);
+
+      const response = standardResponse('success', newFollow, 'Follow created successfully');
+
+      res.status(201).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error creating follow', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error creating follow');
+
+      res.status(500).json(response);
     }
   }
 
@@ -19,25 +25,36 @@ export class UserFollow {
   async getUserFollowById(req: Request, res: Response) {
     try {
       const followerId = parseInt(req.params.followerId);
-      const followeredId = parseInt(req.params.followeredId);
+      const followedId = parseInt(req.params.followedId);
 
-      const followers = await this.followService.findUserFollowById(followerId, followeredId);
+      const followers = await this.followService.findUserFollowById(followerId, followedId);
       if (!followers) {
-        return res.status(404).json({ message: 'followers not found' });
+        const response = standardResponse('error', null, 'Followers not found');
+        return res.status(404).json(response);
       }
-      res.json(followers);
+
+      const response = standardResponse('success', followers, 'Followers fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching followers', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching followers');
+
+      res.status(500).json(response);
     }
   }
 
-  // Get following users of a user
+  // Get all following users of a user
   async getAllUserFollow(req: Request, res: Response) {
     try {
       const following = await this.followService.findAllUserFollow();
-      res.json(following);
+
+      const response = standardResponse('success', following, 'Following fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching following', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching following');
+
+      res.status(500).json(response);
     }
   }
 
@@ -45,21 +62,31 @@ export class UserFollow {
   async updateFollow(req: Request, res: Response) {
     try {
       const followerId = parseInt(req.params.followerId);
-      const followeredId = parseInt(req.params.followeredId);
+      const followedId = parseInt(req.params.followedId);
       const updates = req.body;
 
-      const updatedFollow = await this.followService.updateFollow(
-        followerId,
-        followeredId,
-        updates
-      );
+      const updatedFollow = await this.followService.updateFollow(followerId, followedId, updates);
 
       if (!updatedFollow) {
-        return res.status(404).json({ message: 'Follow relation not found' });
+        const response = standardResponse('error', null, 'Follow relation not found');
+        return res.status(404).json(response);
       }
-      res.json(updatedFollow);
+
+      const response = standardResponse(
+        'success',
+        updatedFollow,
+        'Follow relation updated successfully'
+      );
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error updating follow relation', error: error.message });
+      const response = standardResponse(
+        'error',
+        null,
+        error.message || 'Error updating follow relation'
+      );
+
+      res.status(500).json(response);
     }
   }
 
@@ -67,12 +94,21 @@ export class UserFollow {
   async deleteFollow(req: Request, res: Response) {
     try {
       const followerId = Number(req.params.followerId);
-      const followeredId = Number(req.params.followeredId);
+      const followedId = Number(req.params.followedId);
 
-      await this.followService.deleteFollow(followerId, followeredId);
-      res.status(204).send();
+      await this.followService.deleteFollow(followerId, followedId);
+
+      const response = standardResponse('success', null, 'Follow relation deleted successfully');
+
+      res.status(204).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error deleting follow relation', error: error.message });
+      const response = standardResponse(
+        'error',
+        null,
+        error.message || 'Error deleting follow relation'
+      );
+
+      res.status(500).json(response);
     }
   }
 }

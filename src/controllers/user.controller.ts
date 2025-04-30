@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '../entities/User';
 import { AppDataSource } from '../data-source';
-import { UserFollowService } from '../services/userFollow.service'; // adjust path if needed
+import { UserFollowService } from '../services/userFollow.service'; // Adjust path if needed
 import { standardResponse } from '../helpers/response.helper';
 import { ActivityLogService } from '../services/activityLog.service';
 import { ActivityType } from '../entities/ActivityLog';
@@ -11,6 +11,7 @@ export class UserController {
   private activityLogService = new ActivityLogService();
   private followService = new UserFollowService();
 
+  // Get activities of a user
   async getActivities(req: Request, res: Response) {
     try {
       const userId = parseInt(req.params.id);
@@ -31,20 +32,27 @@ export class UserController {
         page,
         limit
       );
-      // Construct the response with the paginated data
+
       const response = standardResponse(
         'success',
         data,
-        'Followers fetched successfully',
+        'Activities fetched successfully',
         pagination // Include pagination metadata
       );
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching followers', error: error.message });
+      const response = standardResponse(
+        'error',
+        null,
+        error.message || 'Error fetching activities'
+      );
+
+      res.status(500).json(response);
     }
   }
 
+  // Get followers of a user
   async getFollowers(req: Request, res: Response) {
     try {
       const userId = parseInt(req.params.id);
@@ -57,7 +65,7 @@ export class UserController {
         page,
         limit
       );
-      // Construct the response with the paginated data
+
       const response = standardResponse(
         'success',
         data,
@@ -67,59 +75,91 @@ export class UserController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching followers', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching followers');
+
+      res.status(500).json(response);
     }
   }
 
+  // Get all users
   async getAllUsers(req: Request, res: Response) {
     try {
       const users = await this.userRepository.find();
-      res.json(users);
+
+      const response = standardResponse('success', users, 'Users fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching users', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching users');
+
+      res.status(500).json(response);
     }
   }
 
+  // Get user by ID
   async getUserById(req: Request, res: Response) {
     try {
       const user = await this.userRepository.findOneBy({
         id: parseInt(req.params.id),
       });
+
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        const response = standardResponse('error', null, 'User not found');
+        return res.status(404).json(response);
       }
-      res.json(user);
+
+      const response = standardResponse('success', user, 'User fetched successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error fetching user', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error fetching user');
+
+      res.status(500).json(response);
     }
   }
 
+  // Create a user
   async createUser(req: Request, res: Response) {
     try {
       const user = this.userRepository.create(req.body);
       const result = await this.userRepository.save(user);
-      res.status(201).json(result);
+
+      const response = standardResponse('success', result, 'User created successfully');
+
+      res.status(201).json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error creating user', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error creating user');
+
+      res.status(500).json(response);
     }
   }
 
+  // Update user
   async updateUser(req: Request, res: Response) {
     try {
       const user = await this.userRepository.findOneBy({
         id: parseInt(req.params.id),
       });
+
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        const response = standardResponse('error', null, 'User not found');
+        return res.status(404).json(response);
       }
+
       this.userRepository.merge(user, req.body);
       const result = await this.userRepository.save(user);
-      res.json(result);
+
+      const response = standardResponse('success', result, 'User updated successfully');
+
+      res.json(response);
     } catch (error: any) {
-      res.status(500).json({ message: 'Error updating user', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error updating user');
+
+      res.status(500).json(response);
     }
   }
 
+  // Delete user
   async deleteUser(req: Request, res: Response) {
     try {
       const user = await this.userRepository.findOne({
@@ -127,17 +167,21 @@ export class UserController {
         relations: ['following', 'followers', 'posts'],
       });
 
-      console.log(user);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        const response = standardResponse('error', null, 'User not found');
+        return res.status(404).json(response);
       }
 
       // Using the remove method
       await this.userRepository.remove(user);
-      res.status(204).send(); // Successful deletion
+
+      const response = standardResponse('success', null, 'User deleted successfully');
+
+      res.status(204).json(response); // Successful deletion
     } catch (error: any) {
-      // Send the error message to the client
-      res.status(500).json({ message: 'Error deleting user', error: error.message });
+      const response = standardResponse('error', null, error.message || 'Error deleting user');
+
+      res.status(500).json(response);
     }
   }
 }
